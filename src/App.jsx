@@ -1,8 +1,15 @@
+import Header from './components/Header'
+import ProductGrid from './components/ProductGrid'
+import { mockProducts } from './data/mockProducts'
+
 export default function App() {
   return (
-    <div>
-      <h1>MiniLoja</h1>
-      <p>Casa Nativa — sabonetes e cosméticos artesanais</p>
-    </div>
+    <>
+      <Header />
+      <main className="container">
+        <h2>Produtos</h2>
+        <ProductGrid products={mockProducts} />
+      </main>
+    </>
   )
 }
