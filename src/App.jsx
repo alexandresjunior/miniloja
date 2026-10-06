@@ -1,20 +1,19 @@
 import { useEffect, useState } from 'react'
+import { Routes, Route } from 'react-router-dom'
 import Header from './components/Header'
-import ProductGrid from './components/ProductGrid'
-import CartList from './components/CartList'
-import Loading from './components/Loading'
-import ErrorMessage from './components/ErrorMessage'
+import Home from './pages/Home'
+import ProductDetail from './pages/ProductDetail'
+import Cart from './pages/Cart'
 import Admin from './pages/Admin'
+import ProductEdit from './pages/ProductEdit'
+import NotFound from './pages/NotFound'
 import { getProducts, createProduct, updateProduct, deleteProduct } from './api/products'
 import { addItem, changeQuantity, removeItem, itemsCount } from './utils/cart'
 
 export default function App() {
-  // alternância provisória loja/admin (as rotas chegam no módulo 5)
-  const [view, setView] = useState('store') // 'store' | 'admin'
-
-  // catálogo vindo da API
+  // catálogo (igual ao módulo 4)
   const [products, setProducts] = useState([])
-  const [status, setStatus] = useState('loading') // 'loading' | 'error' | 'success'
+  const [status, setStatus] = useState('loading')
   const [error, setError] = useState('')
   const [reloadKey, setReloadKey] = useState(0)
 
@@ -22,22 +21,18 @@ export default function App() {
     let ignore = false
     setStatus('loading')
     getProducts()
-      .then((data) => {
-        if (ignore) return
-        setProducts(data)
-        setStatus('success')
-      })
-      .catch((err) => {
-        if (ignore) return
-        setError(err.message)
-        setStatus('error')
-      })
+      .then((data) => { if (!ignore) { setProducts(data); setStatus('success') } })
+      .catch((err) => { if (!ignore) { setError(err.message); setStatus('error') } })
     return () => { ignore = true }
   }, [reloadKey])
 
-  const retry = () => setReloadKey((k) => k + 1)
+  // carrinho (igual ao módulo 3)
+  const [items, setItems] = useState([])
+  const handleAdd = (product) => setItems((cur) => addItem(cur, product))
+  const handleChange = (id, delta) => setItems((cur) => changeQuantity(cur, id, delta))
+  const handleRemove = (id) => setItems((cur) => removeItem(cur, id))
 
-  // mutações do catálogo
+  // mutações do catálogo (igual ao módulo 4)
   const handleCreate = async (data) => {
     const created = await createProduct(data)
     setProducts((cur) => [...cur, created])
@@ -51,45 +46,21 @@ export default function App() {
     setProducts((cur) => cur.filter((p) => p.id !== id))
   }
 
-  // carrinho
-  const [items, setItems] = useState([])
-  const handleAdd = (product) => setItems((current) => addItem(current, product))
-  const handleChange = (id, delta) => setItems((current) => changeQuantity(current, id, delta))
-  const handleRemove = (id) => setItems((current) => removeItem(current, id))
+  const catalog = { products, status, error, retry: () => setReloadKey((k) => k + 1) }
 
   return (
     <>
       <Header count={itemsCount(items)} />
       <main className="container">
-        <nav className="tabs">
-          <button onClick={() => setView('store')} disabled={view === 'store'}>Loja</button>
-          <button onClick={() => setView('admin')} disabled={view === 'admin'}>Painel do lojista</button>
-        </nav>
-
-        {status === 'loading' && <Loading />}
-        {status === 'error' && <ErrorMessage message={error} onRetry={retry} />}
-
-        {status === 'success' && view === 'store' && (
-          <div className="layout">
-            <section>
-              <h2>Produtos</h2>
-              <ProductGrid products={products} onAdd={handleAdd} />
-            </section>
-            <aside>
-              <h2>Carrinho</h2>
-              <CartList items={items} onChange={handleChange} onRemove={handleRemove} />
-            </aside>
-          </div>
-        )}
-
-        {status === 'success' && view === 'admin' && (
-          <Admin
-            products={products}
-            onCreate={handleCreate}
-            onUpdate={handleUpdate}
-            onDelete={handleDelete}
-          />
-        )}
+        <Routes>
+          <Route path="/" element={<Home catalog={catalog} onAdd={handleAdd} />} />
+          <Route path="/produtos/:id" element={<ProductDetail catalog={catalog} onAdd={handleAdd} />} />
+          <Route path="/carrinho" element={<Cart items={items} onChange={handleChange} onRemove={handleRemove} />} />
+          <Route path="/admin" element={<Admin catalog={catalog} onDelete={handleDelete} />} />
+          <Route path="/admin/novo" element={<ProductEdit catalog={catalog} onCreate={handleCreate} />} />
+          <Route path="/admin/:id/editar" element={<ProductEdit catalog={catalog} onUpdate={handleUpdate} />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
       </main>
     </>
   )
