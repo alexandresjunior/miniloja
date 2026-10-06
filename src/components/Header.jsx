@@ -1,11 +1,16 @@
+import { Link, NavLink } from 'react-router-dom'
+
 export default function Header({ count = 0 }) {
   return (
     <header className="header">
-      <h1>MiniLoja</h1>
-      <span className="tagline">Casa Nativa · sabonetes e cosméticos artesanais</span>
-      <span className="cart-badge" aria-label={`Itens no carrinho: ${count}`}>
+      <Link to="/" className="brand"><h1>MiniLoja</h1></Link>
+      <nav className="nav">
+        <NavLink to="/">Loja</NavLink>
+        <NavLink to="/admin">Painel</NavLink>
+      </nav>
+      <Link to="/carrinho" className="cart-badge" aria-label={`Carrinho: ${count} itens`}>
         🛒 {count}
-      </span>
+      </Link>
     </header>
   )
 }

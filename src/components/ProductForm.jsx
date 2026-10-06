@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { CATEGORIES } from '../config'
 import { toCents, fromCents } from '../utils/format'
+import { validateProduct } from '../utils/validation'
 
 const empty = { name: '', category: CATEGORIES[0], description: '', price: '', promoPrice: '', stock: '0', image: '' }
 
@@ -20,40 +21,67 @@ function toProduct(f) {
   }
 }
 
+function Field({ label, name, error, children }) {
+  return (
+    <label>{label}
+      {children}
+      {error && <span id={`err-${name}`} className="field-error">{error}</span>}
+    </label>
+  )
+}
+
 export default function ProductForm({ initial, onSubmit, onCancel }) {
   const [form, setForm] = useState(initial ? toForm(initial) : empty)
+  const [errors, setErrors] = useState({})
 
-  const handleChange = (e) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }))
+  const handleChange = (e) => {
+    const { name, value } = e.target
+    setForm((f) => ({ ...f, [name]: value }))
+    setErrors((er) => ({ ...er, [name]: undefined }))
+  }
+
   const handleSubmit = (e) => {
     e.preventDefault()
+    const found = validateProduct(form)
+    setErrors(found)
+    if (Object.keys(found).length > 0) return // impede o envio
     onSubmit(toProduct(form))
   }
 
+  // atributos comuns de acessibilidade para cada campo
+  const a11y = (name) => ({
+    name,
+    value: form[name],
+    onChange: handleChange,
+    'aria-invalid': Boolean(errors[name]),
+    'aria-describedby': errors[name] ? `err-${name}` : undefined,
+  })
+
   return (
-    <form className="product-form" onSubmit={handleSubmit}>
-      <label>Nome
-        <input name="name" value={form.name} onChange={handleChange} />
-      </label>
-      <label>Categoria
-        <select name="category" value={form.category} onChange={handleChange}>
+    <form className="product-form" onSubmit={handleSubmit} noValidate>
+      <Field label="Nome" name="name" error={errors.name}>
+        <input {...a11y('name')} />
+      </Field>
+      <Field label="Categoria" name="category" error={errors.category}>
+        <select {...a11y('category')}>
           {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
         </select>
-      </label>
-      <label>Descrição
-        <textarea name="description" value={form.description} onChange={handleChange} rows="3" />
-      </label>
-      <label>Preço (R$)
-        <input name="price" inputMode="decimal" value={form.price} onChange={handleChange} />
-      </label>
-      <label>Preço promocional (R$, opcional)
-        <input name="promoPrice" inputMode="decimal" value={form.promoPrice} onChange={handleChange} />
-      </label>
-      <label>Estoque
-        <input name="stock" type="number" min="0" value={form.stock} onChange={handleChange} />
-      </label>
-      <label>URL da imagem
-        <input name="image" value={form.image} onChange={handleChange} />
-      </label>
+      </Field>
+      <Field label="Descrição" name="description" error={errors.description}>
+        <textarea {...a11y('description')} rows="3" />
+      </Field>
+      <Field label="Preço (R$)" name="price" error={errors.price}>
+        <input {...a11y('price')} inputMode="decimal" />
+      </Field>
+      <Field label="Preço promocional (R$, opcional)" name="promoPrice" error={errors.promoPrice}>
+        <input {...a11y('promoPrice')} inputMode="decimal" />
+      </Field>
+      <Field label="Estoque" name="stock" error={errors.stock}>
+        <input {...a11y('stock')} type="number" min="0" />
+      </Field>
+      <Field label="URL da imagem" name="image" error={errors.image}>
+        <input {...a11y('image')} />
+      </Field>
       <div className="form-actions">
         <button type="submit">Salvar</button>
         <button type="button" className="secondary" onClick={onCancel}>Cancelar</button>
