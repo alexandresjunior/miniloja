@@ -23,3 +23,24 @@ button:hover:not(:disabled) { background: var(--primary-dark); }
 button:disabled { background: #bdbdbd; cursor: not-allowed; }
 button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid #f0b429; outline-offset: 2px; }
 .card-body button { margin-top: auto; }
+
+/* ---- cabeçalho com carrinho (módulo 3) ---- */
+.header { flex-wrap: wrap; align-items: center; }
+.cart-badge { margin-left: auto; color: #fff; text-decoration: none; background: rgba(255,255,255,.18); padding: 6px 12px; border-radius: 999px; }
+
+/* ---- layout loja + carrinho lado a lado ---- */
+.layout { display: grid; gap: 24px; grid-template-columns: 1fr; }
+@media (min-width: 900px) { .layout { grid-template-columns: 2fr 1fr; } }
+.empty { color: var(--muted); }
+
+/* ---- carrinho ---- */
+.cart-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.cart-item { display: grid; grid-template-columns: 56px 1fr auto auto auto; gap: 12px; align-items: center; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px; }
+.cart-item img { border-radius: 8px; object-fit: cover; }
+.cart-info { display: flex; flex-direction: column; }
+.qty { display: flex; align-items: center; gap: 8px; }
+.qty button { padding: 4px 10px; }
+.cart-totals { display: flex; justify-content: space-between; margin: 16px 0; font-size: 1.1rem; }
+@media (max-width: 640px) { .cart-item { grid-template-columns: 56px 1fr; } }
+button.link { background: none; color: var(--danger); padding: 4px; text-decoration: underline; }
+button.link:hover:not(:disabled) { background: none; }
