@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { getProducts, createProduct, updateProduct, deleteProduct } from '../api/products'
+import { getProducts, createProduct, updateProduct, deleteProduct } from '../api'
 
 export function useProducts() {
   const [products, setProducts] = useState([])
